@@ -16,8 +16,7 @@ processFile (x:xs) m = processFile xs (Map.insertWith (++) (filter (/='"') x) [(
 
 createTrigramText :: Map.Map String [String] -> [String] -> [Int] -> [String]
 createTrigramText m x randoms
-  | (length x) <= 200 =
-    createTrigramText m (x ++ [item grams]) (tail randoms)
+  | (length x) <= 200 = createTrigramText m (x ++ [item grams]) (tail randoms)
   | otherwise = x
   where
     grams = lookupItem $ Map.lookup (last $ words $ last x) m
