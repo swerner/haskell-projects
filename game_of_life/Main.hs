@@ -19,7 +19,7 @@ type CellState = Bool
 initialState :: ConwayGame
 initialState = Game
   { gameBoard =
-      V.replicate 400 False V.// [(190, True), (211, True), (229, True), (230, True), (231, True)]
+      V.replicate 400 False V.// [(190, True), (191, True), (210, True), (209, True), (230, True)]
   }
 
 render :: ConwayGame -> Picture
