@@ -19,7 +19,7 @@ type CellState = Bool
 initialState :: ConwayGame
 initialState = Game
   { gameBoard =
-      V.replicate 400 False V.// [(44, True)]
+      V.replicate 400 False V.// [(190, True), (211, True), (229, True), (230, True), (231, True)]
   }
 
 render :: ConwayGame -> Picture
@@ -32,11 +32,11 @@ render game =
     translateToPiece :: Int -> CellState -> Picture
     translateToPiece index False = translate (-300) (-300) $ color black $ circleSolid 9
     translateToPiece index state
-      | index < 1 = translate (-190) (-190) $ color blue $ circleSolid 9
-      | otherwise = translate (-190 + (fromIntegral xPos * 20)) (-190 + (fromIntegral yPos * 20)) $ color blue $ circleSolid 9
+      | index < 1 = translate (-190) 190 $ color blue $ circleSolid 9
+      | otherwise = translate (-190 + (fromIntegral xPos * 20)) (190 - (fromIntegral yPos * 20)) $ color blue $ circleSolid 9
       where
-        xPos = index `mod` 10
-        yPos = index `quot` 10
+        xPos = index `mod` 20
+        yPos = index `quot` 20
 
     hLines = pictures
       [ color red $ line [(-200, -200), (200, -200)]
@@ -91,8 +91,36 @@ window = InWindow "Game of Life" (width, height) (offset, offset)
 background :: Color
 background = black
 
+stepGame :: Float -> ConwayGame -> ConwayGame
+stepGame seconds game = game { gameBoard = (processBoard $ gameBoard game)}
+  where
+    processBoard :: V.Vector CellState -> V.Vector CellState
+    processBoard gameBoard = V.imap nextState gameBoard
+      where
+        nextState :: Int -> CellState -> CellState
+        nextState index state
+          | liveNeighbors < 2 && state == True = False
+          | (liveNeighbors == 2 || liveNeighbors == 3) && state == True = True
+          | liveNeighbors > 3 = False
+          | liveNeighbors == 3 = True
+          | otherwise = False
+          where
+            liveNeighbors = length (filter (== True) [topLeftDiag, topMid, topRightDiag, left, right, bottomLeftDiag, bottomMid, bottomRightDiag])
+            topLeftDiag = if index < 21 then False else (gameBoard V.! (index - 21))
+            topMid = if index < 20 then False else (gameBoard V.! (index - 20))
+            topRightDiag = if index < 19 then False else (gameBoard V.! (index - 19))
+            left = if index < 1 then False else (gameBoard V.! (index - 1))
+            right = if index > 398 then False else (gameBoard V.! (index + 1))
+            bottomLeftDiag = if index > 379 then False else (gameBoard V.! (index + 19))
+            bottomMid = if index > 378 then False else (gameBoard V.! (index + 20))
+            bottomRightDiag = if index > 377 then False else (gameBoard V.! (index + 21))
+
 fps :: Int
-fps = 60
+fps = 10
+
 main :: IO ()
-main = display window background $ render initialState
+main = simulate window background fps initialState render update
+
+update :: ViewPort -> Float -> ConwayGame -> ConwayGame
+update _ = stepGame
 
